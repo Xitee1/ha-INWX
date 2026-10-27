@@ -98,9 +98,13 @@ Example: balance €5.00, renewal of domain A in 25 days (€4.76) and of domain
 
 ## Data updates
 
-Once per hour: login, balance, domain list, renewal price per domain, logout. Each 2FA code
-is used only once. If two logins happen within the same 30-second window (e.g. right after
-setup), the integration waits for the next code.
+Once per day: login, balance, domain list, renewal price per domain, logout. The interval
+starts when Home Assistant starts or the integration is set up or reloaded. Each 2FA code
+is used only once. If two logins happen within the same 30-second window (e.g. right
+after setup), the integration waits for the next code.
+
+To update right away, for example after topping up the balance, call the action
+`homeassistant.update_entity` with any INWX entity or reload the integration.
 
 ## Known limitations
 
