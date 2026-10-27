@@ -4,7 +4,7 @@
 ![AI-generated](https://img.shields.io/badge/code-AI--generated-blueviolet)
 
 > [!WARNING]
-> **Work in Progress:** This integration has not been tested with a real INWX account yet.
+> **Work in Progress:** This integration has only been tested briefly with a real INWX account.
 > Features and entities may still change.
 
 > [!NOTE]
@@ -16,6 +16,8 @@ DomRobot API (JSON-RPC): domains, renewal dates, renewal prices and the account 
 binary sensor warns when the balance does not cover the upcoming automatic renewals.
 
 Intended mainly for `.de` domains, where WHOIS does not provide an expiration date.
+
+The API calls are made by the library [aioinwx](https://github.com/Xitee1/aioinwx).
 
 ## Installation
 
@@ -102,9 +104,6 @@ setup), the integration waits for the next code.
 
 ## Known limitations
 
-- The parsing of the price response (`domain.getalldomainprices`) and the time format of the
-  API are derived from the API documentation and have not been checked against a real
-  account yet. Timestamps without a time zone are read as German local time.
 - The icon in `custom_components/inwx/brand/icon.png` is the INWX logo (globe), created from
   the INWX GitHub profile picture. There is only `icon.png` (256 × 256), because the source
   is too small for a sharp 512 px version. The trademark belongs to INWX.

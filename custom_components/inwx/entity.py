@@ -2,13 +2,13 @@
 
 from typing import override
 
+from aioinwx import InwxDomain
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import InwxDomain
 from .const import DOMAIN
 from .coordinator import InwxCoordinator, domain_device_identifier
 

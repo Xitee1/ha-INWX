@@ -4,12 +4,11 @@ from collections.abc import Generator
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from aioinwx import InwxAccount, InwxBalance, InwxDomain, InwxPrice
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.inwx import api
-from custom_components.inwx.api import InwxAccount, InwxBalance, InwxDomain, InwxPrice
 from custom_components.inwx.const import (
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
@@ -60,13 +59,6 @@ PRICES = {1: PRICE_DE, 2: PRICE_DE, 3: PRICE_COM, 4: PRICE_DE}
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Enable custom integrations in all tests."""
-
-
-@pytest.fixture(autouse=True)
-def reset_totp_steps() -> Generator[None]:
-    """Reset the remembered TOTP steps between tests."""
-    yield
-    api._last_totp_step.clear()
 
 
 @pytest.fixture

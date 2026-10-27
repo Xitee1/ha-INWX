@@ -5,13 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import override
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-
-from .api import (
+from aioinwx import (
     InwxApiError,
     InwxAuthError,
     InwxBalance,
@@ -21,6 +15,12 @@ from .api import (
     InwxError,
     InwxPrice,
 )
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
 from .const import (
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,

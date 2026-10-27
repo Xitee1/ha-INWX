@@ -4,6 +4,18 @@ from collections.abc import Mapping
 from typing import Any, override
 
 import aiohttp
+from aioinwx import (
+    InwxAccount,
+    InwxApiError,
+    InwxAuthError,
+    InwxClient,
+    InwxConnectionError,
+    InwxError,
+    InwxInvalidSharedSecretError,
+    InwxTwoFactorError,
+    InwxTwoFactorRequiredError,
+    normalize_shared_secret,
+)
 from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
@@ -23,18 +35,6 @@ from homeassistant.helpers.selector import (
 )
 import probatio
 
-from .api import (
-    InwxAccount,
-    InwxApiError,
-    InwxAuthError,
-    InwxClient,
-    InwxConnectionError,
-    InwxError,
-    InwxInvalidSharedSecretError,
-    InwxTwoFactorError,
-    InwxTwoFactorRequiredError,
-    normalize_shared_secret,
-)
 from .const import (
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
@@ -127,10 +127,10 @@ class InwxConfigFlow(ConfigFlow, domain=DOMAIN):
             self.hass, auto_cleanup=False, cookie_jar=aiohttp.DummyCookieJar()
         )
         client = InwxClient(
-            session,
             data[CONF_USERNAME],
             data[CONF_PASSWORD],
             data.get(CONF_SHARED_SECRET),
+            session=session,
         )
         errors: dict[str, str] = {}
         account: InwxAccount | None = None

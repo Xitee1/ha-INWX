@@ -2,17 +2,17 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
-from homeassistant.core import HomeAssistant
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.inwx.api import (
+from aioinwx import (
     InwxApiError,
     InwxAuthError,
     InwxConnectionError,
     InwxError,
 )
+from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
+from homeassistant.core import HomeAssistant
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.inwx.const import DOMAIN
 from custom_components.inwx.diagnostics import async_get_config_entry_diagnostics
 

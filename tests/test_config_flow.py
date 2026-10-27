@@ -2,14 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock
 
-from homeassistant.config_entries import SOURCE_USER
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.inwx.api import (
+from aioinwx import (
     InwxAccount,
     InwxApiError,
     InwxAuthError,
@@ -18,6 +11,13 @@ from custom_components.inwx.api import (
     InwxTwoFactorError,
     InwxTwoFactorRequiredError,
 )
+from homeassistant.config_entries import SOURCE_USER
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.inwx.const import (
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,

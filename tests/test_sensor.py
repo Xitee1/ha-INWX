@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
+from aioinwx import InwxBalance, InwxConnectionError
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -13,7 +14,6 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.inwx.api import InwxBalance, InwxConnectionError
 from custom_components.inwx.const import CONF_FORECAST_DAYS, CONF_INCLUDE_VAT, DOMAIN, SCAN_INTERVAL
 from custom_components.inwx.coordinator import (
     InwxData,
