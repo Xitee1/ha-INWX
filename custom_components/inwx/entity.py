@@ -1,16 +1,19 @@
 """Base entities for the INWX integration."""
 
+from collections.abc import Callable, Iterable
 from typing import override
 
 from aioinwx import InwxDomain
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.entity import Entity, EntityDescription
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import InwxCoordinator, domain_device_identifier
+from .coordinator import InwxConfigEntry, InwxCoordinator, domain_device_identifier
 
 
 def account_device_info(config_entry: ConfigEntry) -> DeviceInfo:
@@ -23,6 +26,32 @@ def account_device_info(config_entry: ConfigEntry) -> DeviceInfo:
         entry_type=DeviceEntryType.SERVICE,
         configuration_url="https://www.inwx.de/",
     )
+
+
+@callback
+def async_setup_domain_entities(
+    entry: InwxConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+    entity_factory: Callable[[InwxCoordinator, int], Iterable[Entity]],
+) -> None:
+    """Add the entities of each domain, also of domains that join the account later."""
+    coordinator = entry.runtime_data
+    known_domains: set[int] = set()
+
+    @callback
+    def _async_add_new_domains() -> None:
+        """Add entities for domains that joined the account."""
+        current_domains = set(coordinator.data.domains)
+        known_domains.intersection_update(current_domains)
+        if not (new_domains := current_domains - known_domains):
+            return
+        known_domains.update(new_domains)
+        async_add_entities(
+            entity for ro_id in new_domains for entity in entity_factory(coordinator, ro_id)
+        )
+
+    _async_add_new_domains()
+    entry.async_on_unload(coordinator.async_add_listener(_async_add_new_domains))
 
 
 class InwxEntity(CoordinatorEntity[InwxCoordinator]):

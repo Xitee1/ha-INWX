@@ -8,6 +8,6 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Xitee1/ha-INWX/issues",
-  "requirements": ["aioinwx @ git+https://github.com/Xitee1/aioinwx@e66f444acf089c1b4293300db1fbae12bbdf530e"],
+  "requirements": ["aioinwx @ git+https://github.com/Xitee1/aioinwx@e2c098df95182d017fd151d039335a96a9ddb65c"],
   "version": "0.1.0"
 }

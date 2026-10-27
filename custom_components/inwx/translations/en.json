@@ -59,8 +59,8 @@
   },
   "entity": {
     "binary_sensor": {
-      "balance_insufficient": {
-        "name": "Balance for renewals"
+      "transfer_lock": {
+        "name": "Transfer lock"
       }
     },
     "sensor": {
@@ -69,6 +69,14 @@
       },
       "expiration_date": {
         "name": "Expiration date"
+      },
+      "nameservers": {
+        "name": "Nameservers",
+        "state_attributes": {
+          "nameservers": {
+            "name": "Nameservers"
+          }
+        }
       },
       "next_renewal": {
         "name": "Next renewal"
@@ -106,14 +114,22 @@
       "message": "Failed to connect to the INWX API."
     }
   },
+  "issues": {
+    "balance_insufficient": {
+      "title": "INWX balance too low for renewals",
+      "description": "The available balance of the INWX account {account} ({balance} {currency}) does not cover the automatic renewals in the next {days} days ({costs} {currency}). Top up the account."
+    }
+  },
   "options": {
     "step": {
       "init": {
         "data": {
+          "balance_issue": "Repair issue for low balance",
           "forecast_days": "Forecast period",
           "include_vat": "Prices including VAT"
         },
         "data_description": {
+          "balance_issue": "Show a repair issue when the available balance does not cover the automatic renewals in the forecast period.",
           "forecast_days": "Number of days ahead in which automatic renewals are added up and compared with the available balance.",
           "include_vat": "Use renewal prices including VAT. Turn off if the account is billed net."
         },

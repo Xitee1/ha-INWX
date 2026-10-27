@@ -5,16 +5,26 @@ from unittest.mock import MagicMock
 
 from aioinwx import InwxBalance, InwxConnectionError
 from freezegun.api import FrozenDateTimeFactory
-from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import (
+    device_registry as dr,
+    entity_registry as er,
+    issue_registry as ir,
+)
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
 )
 
-from custom_components.inwx.const import CONF_FORECAST_DAYS, CONF_INCLUDE_VAT, DOMAIN, SCAN_INTERVAL
+from custom_components.inwx.const import (
+    CONF_BALANCE_ISSUE,
+    CONF_FORECAST_DAYS,
+    CONF_INCLUDE_VAT,
+    DOMAIN,
+    SCAN_INTERVAL,
+)
 from custom_components.inwx.coordinator import (
     InwxData,
     add_period,
@@ -27,7 +37,11 @@ from .conftest import CUSTOMER_ID, DOMAINS, NOW, PRICE_DE, PRICES, make_domain
 BALANCE = "sensor.inwx_testuser_available_balance"
 RENEWAL_COSTS = "sensor.inwx_testuser_renewal_costs_in_forecast_period"
 NEXT_RENEWAL = "sensor.inwx_testuser_next_renewal"
-BALANCE_PROBLEM = "binary_sensor.inwx_testuser_balance_for_renewals"
+
+
+def balance_issue(hass: HomeAssistant, entry: MockConfigEntry) -> ir.IssueEntry | None:
+    """Return the repair issue for an insufficient balance."""
+    return ir.async_get(hass).async_get_issue(DOMAIN, f"balance_insufficient_{entry.entry_id}")
 
 
 async def setup_entry(hass: HomeAssistant, entry: MockConfigEntry) -> None:
@@ -55,18 +69,66 @@ async def test_account_sensors(
     assert balance.attributes["unit_of_measurement"] == "EUR"
     assert hass.states.get(RENEWAL_COSTS).state == "9.52"
     assert hass.states.get(NEXT_RENEWAL).state == (NOW + timedelta(days=25)).isoformat()
-    assert hass.states.get(BALANCE_PROBLEM).state == STATE_ON
 
 
-async def test_balance_sufficient(
+async def test_balance_issue(
     hass: HomeAssistant, mock_client: MagicMock, mock_config_entry: MockConfigEntry
 ) -> None:
-    """Test the binary sensor when the balance covers the renewals."""
-    mock_client.get_balance.return_value = InwxBalance(available=9.52, locked=0.0, credit_limit=0.0)
-
+    """Test the repair issue when the balance does not cover the renewals."""
     await setup_entry(hass, mock_config_entry)
 
-    assert hass.states.get(BALANCE_PROBLEM).state == STATE_OFF
+    issue = balance_issue(hass, mock_config_entry)
+    assert issue is not None
+    assert issue.severity is ir.IssueSeverity.WARNING
+    assert not issue.is_fixable
+    assert issue.translation_key == "balance_insufficient"
+    assert issue.translation_placeholders == {
+        "account": "testuser",
+        "balance": "5.00",
+        "costs": "9.52",
+        "currency": "EUR",
+        "days": "30",
+    }
+
+    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert balance_issue(hass, mock_config_entry) is None
+
+
+async def test_balance_issue_deleted_after_top_up(
+    hass: HomeAssistant,
+    mock_client: MagicMock,
+    mock_config_entry: MockConfigEntry,
+    frozen_time: FrozenDateTimeFactory,
+) -> None:
+    """Test that the repair issue is deleted when the balance covers the renewals."""
+    await setup_entry(hass, mock_config_entry)
+    assert balance_issue(hass, mock_config_entry) is not None
+
+    mock_client.get_balance.return_value = InwxBalance(available=9.52, locked=0.0, credit_limit=0.0)
+    frozen_time.tick(SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert balance_issue(hass, mock_config_entry) is None
+
+
+async def test_balance_issue_disabled(
+    hass: HomeAssistant, mock_client: MagicMock, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test that the option turns the repair issue off."""
+    await setup_entry(hass, mock_config_entry)
+    assert balance_issue(hass, mock_config_entry) is not None
+
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+    await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_FORECAST_DAYS: 30, CONF_INCLUDE_VAT: True, CONF_BALANCE_ISSUE: False},
+    )
+    await hass.async_block_till_done()
+
+    assert balance_issue(hass, mock_config_entry) is None
 
 
 async def test_domain_sensors(
@@ -85,6 +147,12 @@ async def test_domain_sensors(
     assert hass.states.get("sensor.example_de_renewal_mode").state == "autorenew"
     assert hass.states.get("sensor.deleted_de_renewal_mode").state == "autodelete"
     assert hass.states.get("sensor.example_de_status").state == "OK"
+    nameservers = hass.states.get("sensor.example_de_nameservers")
+    assert nameservers.state == "2"
+    assert nameservers.attributes["nameservers"] == ["ns.example.com", "ns2.example.com"]
+    assert hass.states.get("sensor.later_com_nameservers").state == STATE_UNKNOWN
+    assert hass.states.get("binary_sensor.example_de_transfer_lock").state == STATE_OFF
+    assert hass.states.get("binary_sensor.later_com_transfer_lock").state == STATE_ON
 
     device = dr.async_get(hass).async_get_device_by_identifier(
         (DOMAIN, f"{CUSTOMER_ID}_1"), mock_config_entry.entry_id
@@ -101,13 +169,14 @@ async def test_options_change_forecast(
 
     result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
     await hass.config_entries.options.async_configure(
-        result["flow_id"], {CONF_FORECAST_DAYS: 100, CONF_INCLUDE_VAT: False}
+        result["flow_id"],
+        {CONF_FORECAST_DAYS: 100, CONF_INCLUDE_VAT: False, CONF_BALANCE_ISSUE: True},
     )
     await hass.async_block_till_done()
 
     assert hass.states.get(RENEWAL_COSTS).state == "18.0"
     assert hass.states.get("sensor.example_de_renewal_price").state == "4.0"
-    assert hass.states.get(BALANCE_PROBLEM).state == STATE_ON
+    assert balance_issue(hass, mock_config_entry).translation_placeholders["days"] == "100"
 
 
 async def test_domains_added_and_removed(
@@ -132,6 +201,7 @@ async def test_domains_added_and_removed(
     await hass.async_block_till_done()
 
     assert hass.states.get("sensor.new_de_renewal_date") is not None
+    assert hass.states.get("binary_sensor.new_de_transfer_lock") is not None
     assert (
         device_registry.async_get_device_by_identifier(
             (DOMAIN, f"{CUSTOMER_ID}_2"), mock_config_entry.entry_id

@@ -4,11 +4,11 @@ import aiohttp
 from aioinwx import InwxClient
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .const import CONF_SHARED_SECRET
-from .coordinator import InwxConfigEntry, InwxCoordinator
+from .const import CONF_SHARED_SECRET, DOMAIN
+from .coordinator import InwxConfigEntry, InwxCoordinator, balance_issue_id
 from .entity import account_device_info
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
@@ -40,4 +40,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: InwxConfigEntry) -> bool
 
 async def async_unload_entry(hass: HomeAssistant, entry: InwxConfigEntry) -> bool:
     """Unload a config entry."""
+    ir.async_delete_issue(hass, DOMAIN, balance_issue_id(entry))
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

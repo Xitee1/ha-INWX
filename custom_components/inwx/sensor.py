@@ -3,14 +3,14 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import override
+from typing import Any, override
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
@@ -22,7 +22,7 @@ from .coordinator import (
     next_renewal,
     renewal_price,
 )
-from .entity import InwxAccountEntity, InwxDomainEntity
+from .entity import InwxAccountEntity, InwxDomainEntity, async_setup_domain_entities
 
 PARALLEL_UPDATES = 0
 
@@ -41,6 +41,7 @@ class InwxDomainSensorEntityDescription(SensorEntityDescription):
     """Describes an INWX domain sensor."""
 
     value_fn: Callable[[InwxCoordinator, int], SensorValue]
+    attributes_fn: Callable[[InwxCoordinator, int], dict[str, Any]] | None = None
 
 
 ACCOUNT_SENSORS: tuple[InwxAccountSensorEntityDescription, ...] = (
@@ -109,6 +110,18 @@ DOMAIN_SENSORS: tuple[InwxDomainSensorEntityDescription, ...] = (
         translation_key="status",
         value_fn=lambda coordinator, ro_id: coordinator.data.domains[ro_id].status,
     ),
+    InwxDomainSensorEntityDescription(
+        key="nameservers",
+        translation_key="nameservers",
+        value_fn=lambda coordinator, ro_id: (
+            len(nameservers)
+            if (nameservers := coordinator.data.domains[ro_id].nameservers) is not None
+            else None
+        ),
+        attributes_fn=lambda coordinator, ro_id: {
+            "nameservers": list(coordinator.data.domains[ro_id].nameservers or ())
+        },
+    ),
 )
 
 
@@ -124,24 +137,13 @@ async def async_setup_entry(
         InwxAccountSensor(coordinator, description) for description in ACCOUNT_SENSORS
     )
 
-    known_domains: set[int] = set()
-
-    @callback
-    def _async_add_new_domains() -> None:
-        """Add sensors for domains that joined the account."""
-        current_domains = set(coordinator.data.domains)
-        known_domains.intersection_update(current_domains)
-        if not (new_domains := current_domains - known_domains):
-            return
-        known_domains.update(new_domains)
-        async_add_entities(
-            InwxDomainSensor(coordinator, description, ro_id)
-            for ro_id in new_domains
-            for description in DOMAIN_SENSORS
-        )
-
-    _async_add_new_domains()
-    entry.async_on_unload(coordinator.async_add_listener(_async_add_new_domains))
+    async_setup_domain_entities(
+        entry,
+        async_add_entities,
+        lambda coordinator, ro_id: (
+            InwxDomainSensor(coordinator, description, ro_id) for description in DOMAIN_SENSORS
+        ),
+    )
 
 
 class InwxAccountSensor(InwxAccountEntity, SensorEntity):
@@ -174,6 +176,14 @@ class InwxDomainSensor(InwxDomainEntity, SensorEntity):
     def native_value(self) -> SensorValue:
         """Return the state of the sensor."""
         return self.entity_description.value_fn(self.coordinator, self.ro_id)
+
+    @property
+    @override
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return the state attributes of the sensor."""
+        if self.entity_description.attributes_fn is None:
+            return None
+        return self.entity_description.attributes_fn(self.coordinator, self.ro_id)
 
     @property
     @override

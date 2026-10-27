@@ -36,9 +36,11 @@ from homeassistant.helpers.selector import (
 import probatio
 
 from .const import (
+    CONF_BALANCE_ISSUE,
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
     CONF_SHARED_SECRET,
+    DEFAULT_BALANCE_ISSUE,
     DEFAULT_FORECAST_DAYS,
     DEFAULT_INCLUDE_VAT,
     DOMAIN,
@@ -87,12 +89,14 @@ OPTIONS_SCHEMA = probatio.Schema(
             probatio.Coerce(int),
         ),
         probatio.Required(CONF_INCLUDE_VAT): BooleanSelector(),
+        probatio.Required(CONF_BALANCE_ISSUE): BooleanSelector(),
     }
 )
 
 DEFAULT_OPTIONS = {
     CONF_FORECAST_DAYS: DEFAULT_FORECAST_DAYS,
     CONF_INCLUDE_VAT: DEFAULT_INCLUDE_VAT,
+    CONF_BALANCE_ISSUE: DEFAULT_BALANCE_ISSUE,
 }
 
 

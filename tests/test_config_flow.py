@@ -19,6 +19,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.inwx.const import (
+    CONF_BALANCE_ISSUE,
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
     CONF_SHARED_SECRET,
@@ -44,7 +45,11 @@ async def test_user_flow(hass: HomeAssistant, mock_client: MagicMock) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == USERNAME
     assert result["data"] == {**USER_INPUT, CONF_SHARED_SECRET: "JBSWY3DPEHPK3PXP"}
-    assert result["options"] == {CONF_FORECAST_DAYS: 30, CONF_INCLUDE_VAT: True}
+    assert result["options"] == {
+        CONF_FORECAST_DAYS: 30,
+        CONF_INCLUDE_VAT: True,
+        CONF_BALANCE_ISSUE: True,
+    }
     assert result["result"].unique_id == str(CUSTOMER_ID)
     mock_client.logout.assert_awaited_once()
 
@@ -190,8 +195,13 @@ async def test_options_flow(
     assert result["type"] is FlowResultType.FORM
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {CONF_FORECAST_DAYS: 60.0, CONF_INCLUDE_VAT: False}
+        result["flow_id"],
+        {CONF_FORECAST_DAYS: 60.0, CONF_INCLUDE_VAT: False, CONF_BALANCE_ISSUE: False},
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert mock_config_entry.options == {CONF_FORECAST_DAYS: 60, CONF_INCLUDE_VAT: False}
+    assert mock_config_entry.options == {
+        CONF_FORECAST_DAYS: 60,
+        CONF_INCLUDE_VAT: False,
+        CONF_BALANCE_ISSUE: False,
+    }

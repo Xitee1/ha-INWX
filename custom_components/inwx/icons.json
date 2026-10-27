@@ -1,10 +1,10 @@
 {
   "entity": {
     "binary_sensor": {
-      "balance_insufficient": {
-        "default": "mdi:wallet",
+      "transfer_lock": {
+        "default": "mdi:lock",
         "state": {
-          "on": "mdi:wallet-outline"
+          "on": "mdi:lock-open-variant"
         }
       }
     },
@@ -14,6 +14,9 @@
       },
       "expiration_date": {
         "default": "mdi:calendar-end"
+      },
+      "nameservers": {
+        "default": "mdi:dns"
       },
       "next_renewal": {
         "default": "mdi:calendar-sync"

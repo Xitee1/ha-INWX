@@ -10,8 +10,10 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.inwx.const import (
+    CONF_BALANCE_ISSUE,
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
+    DEFAULT_BALANCE_ISSUE,
     DEFAULT_FORECAST_DAYS,
     DEFAULT_INCLUDE_VAT,
     DOMAIN,
@@ -32,6 +34,8 @@ def make_domain(
     renewal_in_days: int,
     renewal_mode: str = "AUTORENEW",
     period: str = "1Y",
+    transfer_lock: bool | None = True,
+    nameservers: tuple[str, ...] | None = ("ns.example.com", "ns2.example.com"),
 ) -> InwxDomain:
     """Return a domain that renews in the given number of days."""
     renewal_date = NOW + timedelta(days=renewal_in_days)
@@ -44,13 +48,15 @@ def make_domain(
         period=period,
         renewal_date=renewal_date,
         expiration_date=renewal_date + timedelta(days=5),
+        transfer_lock=transfer_lock,
+        nameservers=nameservers,
     )
 
 
 DOMAINS = [
     make_domain(1, "example.de", 25),
     make_domain(2, "other.de", 29),
-    make_domain(3, "later.com", 90),
+    make_domain(3, "later.com", 90, transfer_lock=False, nameservers=None),
     make_domain(4, "deleted.de", 10, renewal_mode="AUTODELETE"),
 ]
 PRICES = {1: PRICE_DE, 2: PRICE_DE, 3: PRICE_COM, 4: PRICE_DE}
@@ -94,5 +100,6 @@ def mock_config_entry() -> MockConfigEntry:
         options={
             CONF_FORECAST_DAYS: DEFAULT_FORECAST_DAYS,
             CONF_INCLUDE_VAT: DEFAULT_INCLUDE_VAT,
+            CONF_BALANCE_ISSUE: DEFAULT_BALANCE_ISSUE,
         },
     )

@@ -13,7 +13,7 @@
 
 Custom integration that monitors an [INWX](https://www.inwx.de/) account through the
 DomRobot API (JSON-RPC): domains, renewal dates, renewal prices and the account balance. A
-binary sensor warns when the balance does not cover the upcoming automatic renewals.
+repair issue warns when the balance does not cover the upcoming automatic renewals.
 
 Intended mainly for `.de` domains, where WHOIS does not provide an expiration date.
 
@@ -57,6 +57,7 @@ To change them manually, use **Reconfigure** in the integration menu.
 |--------|---------|-------------|
 | Forecast period | 30 days | Period in which automatic renewals are added up and compared with the available balance (1–365 days). |
 | Prices including VAT | on | Use renewal prices including VAT. Turn off if the account is billed net. |
+| Repair issue for low balance | on | Show a repair issue when the available balance does not cover the automatic renewals in the forecast period. |
 
 ## Entities
 
@@ -67,7 +68,6 @@ To change them manually, use **Reconfigure** in the integration menu.
 | Available balance | Sensor (monetary) | Available balance according to INWX (`available`). |
 | Renewal costs in forecast period | Sensor (monetary) | Sum of the renewal prices of all automatic renewals up to the end of the forecast period. |
 | Next renewal | Sensor (timestamp) | Earliest renewal date of all domains with automatic renewal. |
-| Balance for renewals | Binary sensor (problem) | `Problem` if the renewal costs in the forecast period are higher than the available balance. |
 
 ### One device per domain
 
@@ -78,11 +78,20 @@ To change them manually, use **Reconfigure** in the integration menu.
 | Renewal price | Sensor (monetary) | Renewal price of the domain for its period. |
 | Renewal mode | Sensor (enum) | Renew automatically / Delete automatically / Expire automatically. |
 | Status | Sensor | Domain status according to INWX. |
+| Nameservers | Sensor | Number of nameservers of the domain (`ns`). The attribute `nameservers` lists them. |
+| Transfer lock | Binary sensor (lock) | `Locked` if the transfer lock is on, `Unlocked` if it is off (`transferLock`). |
 
 New domains get a device automatically on the next update. Domains that leave the account
 are removed together with their device.
 
-## Calculation of the balance warning
+## Repair issue for low balance
+
+If the renewal costs in the forecast period are higher than the available balance, Home
+Assistant shows a repair issue under **Settings → System → Repairs**. The issue disappears on
+the next update after the balance covers the costs again. The option **Repair issue for low
+balance** turns it off.
+
+### Calculation
 
 - Only domains with renewal mode **Renew automatically** are taken into account.
 - Every renewal whose date lies before the end of the forecast period is counted. Renewal
@@ -93,8 +102,8 @@ are removed together with their device.
   account.
 
 Example: balance €5.00, renewal of domain A in 25 days (€4.76) and of domain B in 29 days
-(€4.76). With a forecast period of 30 days, the costs are €9.52 and the binary sensor is
-`Problem`.
+(€4.76). With a forecast period of 30 days, the costs are €9.52 and the repair issue is
+shown.
 
 ## Data updates
 

@@ -59,8 +59,8 @@
   },
   "entity": {
     "binary_sensor": {
-      "balance_insufficient": {
-        "name": "Guthaben für Verlängerungen"
+      "transfer_lock": {
+        "name": "Transfersperre"
       }
     },
     "sensor": {
@@ -69,6 +69,14 @@
       },
       "expiration_date": {
         "name": "Ablaufdatum"
+      },
+      "nameservers": {
+        "name": "Nameserver",
+        "state_attributes": {
+          "nameservers": {
+            "name": "Nameserver"
+          }
+        }
       },
       "next_renewal": {
         "name": "Nächste Verlängerung"
@@ -106,14 +114,22 @@
       "message": "Verbindung zur INWX-API fehlgeschlagen."
     }
   },
+  "issues": {
+    "balance_insufficient": {
+      "title": "INWX-Guthaben reicht nicht für Verlängerungen",
+      "description": "Das verfügbare Guthaben des INWX-Kontos {account} ({balance} {currency}) deckt die automatischen Verlängerungen der nächsten {days} Tage ({costs} {currency}) nicht. Lade das Konto auf."
+    }
+  },
   "options": {
     "step": {
       "init": {
         "data": {
+          "balance_issue": "Reparaturmeldung bei zu wenig Guthaben",
           "forecast_days": "Prognosezeitraum",
           "include_vat": "Preise inkl. MwSt."
         },
         "data_description": {
+          "balance_issue": "Zeigt eine Reparaturmeldung, wenn das verfügbare Guthaben die automatischen Verlängerungen im Prognosezeitraum nicht deckt.",
           "forecast_days": "Anzahl der Tage im Voraus, in denen automatische Verlängerungen addiert und mit dem verfügbaren Guthaben verglichen werden.",
           "include_vat": "Verlängerungspreise inkl. MwSt. verwenden. Ausschalten, wenn das Konto netto abgerechnet wird."
         },

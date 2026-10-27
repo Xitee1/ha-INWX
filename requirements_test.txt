@@ -1,3 +1,3 @@
 pytest-homeassistant-custom-component
-aioinwx @ git+https://github.com/Xitee1/aioinwx@e66f444acf089c1b4293300db1fbae12bbdf530e
+aioinwx @ git+https://github.com/Xitee1/aioinwx@e2c098df95182d017fd151d039335a96a9ddb65c
 ruff

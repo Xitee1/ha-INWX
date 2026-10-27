@@ -9,17 +9,16 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.util import dt as dt_util
 
-from .coordinator import InwxConfigEntry, calculate_renewal_costs
-from .entity import InwxAccountEntity
+from .coordinator import InwxConfigEntry
+from .entity import InwxDomainEntity, async_setup_domain_entities
 
 PARALLEL_UPDATES = 0
 
-BALANCE_INSUFFICIENT = BinarySensorEntityDescription(
-    key="balance_insufficient",
-    translation_key="balance_insufficient",
-    device_class=BinarySensorDeviceClass.PROBLEM,
+TRANSFER_LOCK = BinarySensorEntityDescription(
+    key="transfer_lock",
+    translation_key="transfer_lock",
+    device_class=BinarySensorDeviceClass.LOCK,
 )
 
 
@@ -29,22 +28,25 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up INWX binary sensors."""
-    async_add_entities(
-        [InwxBalanceInsufficientBinarySensor(entry.runtime_data, BALANCE_INSUFFICIENT)]
+    async_setup_domain_entities(
+        entry,
+        async_add_entities,
+        lambda coordinator, ro_id: [
+            InwxTransferLockBinarySensor(coordinator, TRANSFER_LOCK, ro_id)
+        ],
     )
 
 
-class InwxBalanceInsufficientBinarySensor(InwxAccountEntity, BinarySensorEntity):
-    """Binary sensor that is on when the balance does not cover upcoming renewals."""
+class InwxTransferLockBinarySensor(InwxDomainEntity, BinarySensorEntity):
+    """Binary sensor of the transfer lock of a domain.
+
+    With the lock device class, on means unlocked.
+    """
 
     @property
     @override
-    def is_on(self) -> bool:
-        """Return true if the renewal costs exceed the available balance."""
-        costs = calculate_renewal_costs(
-            self.coordinator.data,
-            dt_util.utcnow(),
-            self.coordinator.forecast_days,
-            self.coordinator.include_vat,
-        )
-        return costs > self.coordinator.data.balance.available
+    def is_on(self) -> bool | None:
+        """Return true if the transfer lock is off."""
+        if (transfer_lock := self.domain.transfer_lock) is None:
+            return None
+        return not transfer_lock

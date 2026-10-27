@@ -18,12 +18,15 @@ from aioinwx import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_BALANCE_ISSUE,
     CONF_FORECAST_DAYS,
     CONF_INCLUDE_VAT,
+    DEFAULT_BALANCE_ISSUE,
     DEFAULT_FORECAST_DAYS,
     DEFAULT_INCLUDE_VAT,
     DOMAIN,
@@ -134,6 +137,11 @@ class InwxCoordinator(DataUpdateCoordinator[InwxData]):
         """Return whether prices include VAT."""
         return bool(self.config_entry.options.get(CONF_INCLUDE_VAT, DEFAULT_INCLUDE_VAT))
 
+    @property
+    def balance_issue(self) -> bool:
+        """Return whether a repair issue is shown for an insufficient balance."""
+        return bool(self.config_entry.options.get(CONF_BALANCE_ISSUE, DEFAULT_BALANCE_ISSUE))
+
     @override
     async def _async_update_data(self) -> InwxData:
         """Fetch balance, domains and renewal prices."""
@@ -168,7 +176,34 @@ class InwxCoordinator(DataUpdateCoordinator[InwxData]):
 
         self._remove_stale_devices(domains)
 
-        return InwxData(balance=balance, domains=domains, prices=prices)
+        data = InwxData(balance=balance, domains=domains, prices=prices)
+        self._update_balance_issue(data)
+        return data
+
+    def _update_balance_issue(self, data: InwxData) -> None:
+        """Create or delete the repair issue for an insufficient balance."""
+        costs = calculate_renewal_costs(
+            data, dt_util.utcnow(), self.forecast_days, self.include_vat
+        )
+        issue_id = balance_issue_id(self.config_entry)
+        if not self.balance_issue or costs <= data.balance.available:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+            return
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="balance_insufficient",
+            translation_placeholders={
+                "account": self.config_entry.title,
+                "balance": f"{data.balance.available:.2f}",
+                "costs": f"{costs:.2f}",
+                "currency": data.currency,
+                "days": str(self.forecast_days),
+            },
+        )
 
     def _remove_stale_devices(self, domains: dict[int, InwxDomain]) -> None:
         """Remove the devices of domains that left the account."""
@@ -181,6 +216,11 @@ class InwxCoordinator(DataUpdateCoordinator[InwxData]):
         ):
             if not device.identifiers & valid_identifiers:
                 device_registry.async_remove_device(device.id)
+
+
+def balance_issue_id(config_entry: ConfigEntry) -> str:
+    """Return the ID of the repair issue for an insufficient balance."""
+    return f"balance_insufficient_{config_entry.entry_id}"
 
 
 def domain_device_identifier(config_entry: ConfigEntry, ro_id: int) -> str:
