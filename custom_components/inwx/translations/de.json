@@ -1,0 +1,124 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Dieses INWX-Konto ist bereits eingerichtet.",
+      "reauth_successful": "Die erneute Anmeldung war erfolgreich.",
+      "reconfigure_successful": "Die Neukonfiguration war erfolgreich.",
+      "unique_id_mismatch": "Die Zugangsdaten gehören zu einem anderen INWX-Konto."
+    },
+    "error": {
+      "cannot_connect": "Verbindung zur INWX-API fehlgeschlagen.",
+      "invalid_auth": "Benutzername oder Passwort ist ungültig.",
+      "invalid_shared_secret": "Das 2FA-Secret ist kein gültiger Base32-Schlüssel.",
+      "invalid_tfa": "Der 2FA-Code wurde abgelehnt. Prüfe das 2FA-Secret und die Systemzeit.",
+      "tfa_required": "Dieses Konto nutzt Zwei-Faktor-Authentifizierung. Gib das 2FA-Secret ein.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "step": {
+      "reauth_confirm": {
+        "data": {
+          "password": "Passwort",
+          "shared_secret": "2FA-Secret"
+        },
+        "data_description": {
+          "password": "Das Passwort des INWX-Kontos {username}.",
+          "shared_secret": "Der Base32-Schlüssel aus der INWX-2FA-Einrichtung. Leer lassen, wenn das Konto keine Zwei-Faktor-Authentifizierung nutzt."
+        },
+        "description": "Die Anmeldung am INWX-Konto {username} ist fehlgeschlagen. Gib die aktuellen Zugangsdaten ein.",
+        "title": "INWX-Konto erneut anmelden"
+      },
+      "reconfigure": {
+        "data": {
+          "password": "Passwort",
+          "shared_secret": "2FA-Secret",
+          "username": "Benutzername"
+        },
+        "data_description": {
+          "password": "Das Passwort des INWX-Kontos.",
+          "shared_secret": "Der Base32-Schlüssel aus der INWX-2FA-Einrichtung. Leer lassen, wenn das Konto keine Zwei-Faktor-Authentifizierung nutzt.",
+          "username": "Der Benutzername des INWX-Kontos."
+        },
+        "description": "Ändere die Zugangsdaten des INWX-Kontos.",
+        "title": "INWX-Konto neu konfigurieren"
+      },
+      "user": {
+        "data": {
+          "password": "Passwort",
+          "shared_secret": "2FA-Secret",
+          "username": "Benutzername"
+        },
+        "data_description": {
+          "password": "Das Passwort des INWX-Kontos.",
+          "shared_secret": "Der Base32-Schlüssel aus der INWX-2FA-Einrichtung. Leer lassen, wenn das Konto keine Zwei-Faktor-Authentifizierung nutzt.",
+          "username": "Der Benutzername des INWX-Kontos."
+        },
+        "description": "Verbinde dein INWX-Konto, um Domains, Verlängerungen und das Guthaben zu überwachen.",
+        "title": "INWX-Konto"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "balance_insufficient": {
+        "name": "Guthaben für Verlängerungen"
+      }
+    },
+    "sensor": {
+      "balance": {
+        "name": "Verfügbares Guthaben"
+      },
+      "expiration_date": {
+        "name": "Ablaufdatum"
+      },
+      "next_renewal": {
+        "name": "Nächste Verlängerung"
+      },
+      "renewal_costs": {
+        "name": "Verlängerungskosten im Prognosezeitraum"
+      },
+      "renewal_date": {
+        "name": "Verlängerungsdatum"
+      },
+      "renewal_mode": {
+        "name": "Verlängerungsmodus",
+        "state": {
+          "autodelete": "Automatisch löschen",
+          "autoexpire": "Automatisch auslaufen",
+          "autorenew": "Automatisch verlängern"
+        }
+      },
+      "renewal_price": {
+        "name": "Verlängerungspreis"
+      },
+      "status": {
+        "name": "Status"
+      }
+    }
+  },
+  "exceptions": {
+    "api_error": {
+      "message": "Die INWX-API hat einen Fehler gemeldet: {error}"
+    },
+    "auth_failed": {
+      "message": "Die Anmeldung am INWX-Konto ist fehlgeschlagen."
+    },
+    "cannot_connect": {
+      "message": "Verbindung zur INWX-API fehlgeschlagen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "forecast_days": "Prognosezeitraum",
+          "include_vat": "Preise inkl. MwSt."
+        },
+        "data_description": {
+          "forecast_days": "Anzahl der Tage im Voraus, in denen automatische Verlängerungen addiert und mit dem verfügbaren Guthaben verglichen werden.",
+          "include_vat": "Verlängerungspreise inkl. MwSt. verwenden. Ausschalten, wenn das Konto netto abgerechnet wird."
+        },
+        "title": "INWX-Optionen"
+      }
+    }
+  }
+}

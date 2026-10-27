@@ -1,0 +1,42 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "balance_insufficient": {
+        "default": "mdi:wallet",
+        "state": {
+          "on": "mdi:wallet-outline"
+        }
+      }
+    },
+    "sensor": {
+      "balance": {
+        "default": "mdi:wallet"
+      },
+      "expiration_date": {
+        "default": "mdi:calendar-end"
+      },
+      "next_renewal": {
+        "default": "mdi:calendar-sync"
+      },
+      "renewal_costs": {
+        "default": "mdi:cash-clock"
+      },
+      "renewal_date": {
+        "default": "mdi:calendar-sync"
+      },
+      "renewal_mode": {
+        "default": "mdi:autorenew",
+        "state": {
+          "autodelete": "mdi:delete-clock",
+          "autoexpire": "mdi:timer-off"
+        }
+      },
+      "renewal_price": {
+        "default": "mdi:cash"
+      },
+      "status": {
+        "default": "mdi:web"
+      }
+    }
+  }
+}

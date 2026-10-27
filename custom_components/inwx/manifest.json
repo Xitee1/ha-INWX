@@ -1,0 +1,13 @@
+{
+  "domain": "inwx",
+  "name": "INWX",
+  "codeowners": ["@Xitee1"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/Xitee1/ha-INWX",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Xitee1/ha-INWX/issues",
+  "requirements": ["pyotp==2.9.0"],
+  "version": "0.1.0"
+}

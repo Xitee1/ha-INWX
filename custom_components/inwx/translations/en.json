@@ -1,0 +1,124 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This INWX account is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "Re-configuration was successful.",
+      "unique_id_mismatch": "The login details belong to a different INWX account."
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the INWX API.",
+      "invalid_auth": "Username or password is invalid.",
+      "invalid_shared_secret": "The 2FA secret is not a valid Base32 key.",
+      "invalid_tfa": "The 2FA code was rejected. Check the 2FA secret and the system time.",
+      "tfa_required": "This account uses two-factor authentication. Enter the 2FA secret.",
+      "unknown": "Unexpected error."
+    },
+    "step": {
+      "reauth_confirm": {
+        "data": {
+          "password": "Password",
+          "shared_secret": "2FA secret"
+        },
+        "data_description": {
+          "password": "The password of the INWX account {username}.",
+          "shared_secret": "The Base32 key from the INWX two-factor setup. Leave empty if the account has no two-factor authentication."
+        },
+        "description": "The login of the INWX account {username} failed. Enter the current credentials.",
+        "title": "Re-authenticate INWX account"
+      },
+      "reconfigure": {
+        "data": {
+          "password": "Password",
+          "shared_secret": "2FA secret",
+          "username": "Username"
+        },
+        "data_description": {
+          "password": "The password of the INWX account.",
+          "shared_secret": "The Base32 key from the INWX two-factor setup. Leave empty if the account has no two-factor authentication.",
+          "username": "The username of the INWX account."
+        },
+        "description": "Change the credentials of the INWX account.",
+        "title": "Reconfigure INWX account"
+      },
+      "user": {
+        "data": {
+          "password": "Password",
+          "shared_secret": "2FA secret",
+          "username": "Username"
+        },
+        "data_description": {
+          "password": "The password of the INWX account.",
+          "shared_secret": "The Base32 key from the INWX two-factor setup. Leave empty if the account has no two-factor authentication.",
+          "username": "The username of the INWX account."
+        },
+        "description": "Connect your INWX account to monitor domains, renewals and the account balance.",
+        "title": "INWX account"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "balance_insufficient": {
+        "name": "Balance for renewals"
+      }
+    },
+    "sensor": {
+      "balance": {
+        "name": "Available balance"
+      },
+      "expiration_date": {
+        "name": "Expiration date"
+      },
+      "next_renewal": {
+        "name": "Next renewal"
+      },
+      "renewal_costs": {
+        "name": "Renewal costs in forecast period"
+      },
+      "renewal_date": {
+        "name": "Renewal date"
+      },
+      "renewal_mode": {
+        "name": "Renewal mode",
+        "state": {
+          "autodelete": "Delete automatically",
+          "autoexpire": "Expire automatically",
+          "autorenew": "Renew automatically"
+        }
+      },
+      "renewal_price": {
+        "name": "Renewal price"
+      },
+      "status": {
+        "name": "Status"
+      }
+    }
+  },
+  "exceptions": {
+    "api_error": {
+      "message": "The INWX API returned an error: {error}"
+    },
+    "auth_failed": {
+      "message": "The login to the INWX account failed."
+    },
+    "cannot_connect": {
+      "message": "Failed to connect to the INWX API."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "forecast_days": "Forecast period",
+          "include_vat": "Prices including VAT"
+        },
+        "data_description": {
+          "forecast_days": "Number of days ahead in which automatic renewals are added up and compared with the available balance.",
+          "include_vat": "Use renewal prices including VAT. Turn off if the account is billed net."
+        },
+        "title": "INWX options"
+      }
+    }
+  }
+}
