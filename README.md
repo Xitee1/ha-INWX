@@ -1,118 +1,115 @@
-# INWX für Home Assistant
+# INWX for Home Assistant
 
 ![Status: Work in Progress](https://img.shields.io/badge/status-WIP-orange)
-![KI-generiert](https://img.shields.io/badge/code-KI--generiert-blueviolet)
+![AI-generated](https://img.shields.io/badge/code-AI--generated-blueviolet)
 
 > [!WARNING]
-> **Work in Progress:** Die Integration ist noch nicht mit einem echten INWX-Konto getestet.
-> Funktionen und Entitäten können sich noch ändern.
+> **Work in Progress:** This integration has not been tested with a real INWX account yet.
+> Features and entities may still change.
 
 > [!NOTE]
-> **KI-generiert:** Code, Tests und Dokumentation dieses Projekts wurden mit KI
-> (Claude Code, Anthropic) erstellt.
+> **AI-generated:** The code, tests and documentation of this project were created with AI
+> (Claude Code, Anthropic).
 
-Benutzerdefinierte Integration, die ein [INWX](https://www.inwx.de/)-Konto über die
-DomRobot-API (JSON-RPC) überwacht: Domains, Verlängerungstermine, Verlängerungspreise und
-das Kontoguthaben. Ein Binärsensor warnt, wenn das Guthaben die anstehenden automatischen
-Verlängerungen nicht deckt.
+Custom integration that monitors an [INWX](https://www.inwx.de/) account through the
+DomRobot API (JSON-RPC): domains, renewal dates, renewal prices and the account balance. A
+binary sensor warns when the balance does not cover the upcoming automatic renewals.
 
-Gedacht vor allem für `.de`-Domains, bei denen WHOIS kein Ablaufdatum liefert.
+Intended mainly for `.de` domains, where WHOIS does not provide an expiration date.
 
 ## Installation
 
-### HACS (benutzerdefiniertes Repository)
+### HACS (custom repository)
 
-1. HACS → Menü → **Benutzerdefinierte Repositories** → URL dieses Repositorys, Typ
-   **Integration**.
-2. **INWX** installieren und Home Assistant neu starten.
+1. HACS → menu → **Custom repositories** → URL of this repository, type **Integration**.
+2. Install **INWX** and restart Home Assistant.
 
-### Manuell
+### Manual
 
-Den Ordner `custom_components/inwx` nach `<config>/custom_components/inwx` kopieren und
-Home Assistant neu starten.
+Copy the folder `custom_components/inwx` to `<config>/custom_components/inwx` and restart
+Home Assistant.
 
-## Einrichtung
+## Setup
 
-**Einstellungen → Geräte & Dienste → Integration hinzufügen → INWX**
+**Settings → Devices & services → Add integration → INWX**
 
-| Feld | Beschreibung |
-|------|--------------|
-| Benutzername | Benutzername des INWX-Kontos |
-| Passwort | Passwort des INWX-Kontos |
-| 2FA-Secret | Base32-Schlüssel aus der INWX-2FA-Einrichtung. Nur nötig, wenn das Konto Zwei-Faktor-Authentifizierung nutzt. |
+| Field | Description |
+|-------|-------------|
+| Username | Username of the INWX account |
+| Password | Password of the INWX account |
+| 2FA secret | Base32 key from the INWX 2FA setup. Only required if the account uses two-factor authentication. |
 
-Das 2FA-Secret ist der Schlüssel, der beim Einrichten der Zwei-Faktor-Authentifizierung
-angezeigt wird (meist als QR-Code, darunter als Text). Die Integration erzeugt daraus selbst
-die Einmalcodes. Wurde der Schlüssel damals nicht gesichert, muss 2FA bei INWX neu
-eingerichtet werden.
+The 2FA secret is the key shown when two-factor authentication is set up (usually as a QR
+code, with the text version below it). The integration generates the one-time codes from it
+itself. If the key was not saved at the time, 2FA has to be set up again at INWX.
 
-INWX bietet keine API-Schlüssel an. Die Integration meldet sich deshalb mit den
-Kontozugangsdaten an und hat damit dieselben Rechte wie das Konto. Sie liest nur Daten und
-ändert nichts.
+INWX does not offer API keys. The integration therefore logs in with the account credentials
+and has the same permissions as the account. It only reads data and does not change anything.
 
-Geänderte Zugangsdaten: Bei einem Anmeldefehler fragt Home Assistant selbst nach neuen
-Zugangsdaten. Manuell geht es über **Neu konfigurieren** im Menü der Integration.
+Changed credentials: After a login error, Home Assistant asks for new credentials on its own.
+To change them manually, use **Reconfigure** in the integration menu.
 
-## Optionen
+## Options
 
-| Option | Standard | Beschreibung |
-|--------|----------|--------------|
-| Prognosezeitraum | 30 Tage | Zeitraum, in dem automatische Verlängerungen addiert und mit dem verfügbaren Guthaben verglichen werden (1–365 Tage). |
-| Preise inkl. MwSt. | an | Verlängerungspreise inkl. MwSt. verwenden. Ausschalten, wenn das Konto netto abgerechnet wird. |
+| Option | Default | Description |
+|--------|---------|-------------|
+| Forecast period | 30 days | Period in which automatic renewals are added up and compared with the available balance (1–365 days). |
+| Prices including VAT | on | Use renewal prices including VAT. Turn off if the account is billed net. |
 
-## Entitäten
+## Entities
 
-### Gerät „INWX &lt;Benutzername&gt;“
+### Device "INWX &lt;username&gt;"
 
-| Entität | Typ | Beschreibung |
-|---------|-----|--------------|
-| Verfügbares Guthaben | Sensor (Währung) | Verfügbares Guthaben laut INWX (`available`). |
-| Verlängerungskosten im Prognosezeitraum | Sensor (Währung) | Summe der Verlängerungspreise aller automatischen Verlängerungen bis zum Ende des Prognosezeitraums. |
-| Nächste Verlängerung | Sensor (Zeitstempel) | Frühestes Verlängerungsdatum aller Domains mit automatischer Verlängerung. |
-| Guthaben für Verlängerungen | Binärsensor (Problem) | `Problem`, wenn die Verlängerungskosten im Prognosezeitraum größer sind als das verfügbare Guthaben. |
+| Entity | Type | Description |
+|--------|------|-------------|
+| Available balance | Sensor (monetary) | Available balance according to INWX (`available`). |
+| Renewal costs in forecast period | Sensor (monetary) | Sum of the renewal prices of all automatic renewals up to the end of the forecast period. |
+| Next renewal | Sensor (timestamp) | Earliest renewal date of all domains with automatic renewal. |
+| Balance for renewals | Binary sensor (problem) | `Problem` if the renewal costs in the forecast period are higher than the available balance. |
 
-### Ein Gerät pro Domain
+### One device per domain
 
-| Entität | Typ | Beschreibung |
-|---------|-----|--------------|
-| Verlängerungsdatum | Sensor (Zeitstempel) | Zeitpunkt, an dem INWX die Domain verlängert (`reDate`). |
-| Ablaufdatum | Sensor (Zeitstempel) | Ende des bezahlten Zeitraums (`exDate`). |
-| Verlängerungspreis | Sensor (Währung) | Verlängerungspreis der Domain für ihre Laufzeit. |
-| Verlängerungsmodus | Sensor (Auswahl) | Automatisch verlängern / Automatisch löschen / Automatisch auslaufen. |
-| Status | Sensor | Domainstatus laut INWX. |
+| Entity | Type | Description |
+|--------|------|-------------|
+| Renewal date | Sensor (timestamp) | Time at which INWX renews the domain (`reDate`). |
+| Expiration date | Sensor (timestamp) | End of the paid period (`exDate`). |
+| Renewal price | Sensor (monetary) | Renewal price of the domain for its period. |
+| Renewal mode | Sensor (enum) | Renew automatically / Delete automatically / Expire automatically. |
+| Status | Sensor | Domain status according to INWX. |
 
-Neue Domains bekommen beim nächsten Abruf automatisch ein Gerät. Domains, die das Konto
-verlassen, werden samt Gerät entfernt.
+New domains get a device automatically on the next update. Domains that leave the account
+are removed together with their device.
 
-## Berechnung der Guthaben-Warnung
+## Calculation of the balance warning
 
-- Berücksichtigt werden nur Domains mit Verlängerungsmodus **Automatisch verlängern**.
-- Gezählt wird jede Verlängerung, deren Datum bis zum Ende des Prognosezeitraums liegt.
-  Verlängerungsdaten in der Vergangenheit (noch nicht abgebucht) zählen mit.
-- Domains mit kurzer Laufzeit (z. B. `1M`) werden pro Laufzeit im Zeitraum einmal gezählt.
-- Verglichen wird mit dem verfügbaren Guthaben. Ein Kreditlimit wird nicht einbezogen.
+- Only domains with renewal mode **Renew automatically** are taken into account.
+- Every renewal whose date lies before the end of the forecast period is counted. Renewal
+  dates in the past (not yet charged) are counted as well.
+- Domains with a short period (e.g. `1M`) are counted once per period within the forecast
+  period.
+- The costs are compared with the available balance. A credit limit is not taken into
+  account.
 
-Beispiel: Guthaben 5,00 €, Verlängerung von Domain A in 25 Tagen (4,76 €) und von Domain B
-in 29 Tagen (4,76 €). Bei 30 Tagen Prognosezeitraum ergeben sich 9,52 € Kosten, der
-Binärsensor steht auf `Problem`.
+Example: balance €5.00, renewal of domain A in 25 days (€4.76) and of domain B in 29 days
+(€4.76). With a forecast period of 30 days, the costs are €9.52 and the binary sensor is
+`Problem`.
 
-## Datenabruf
+## Data updates
 
-Einmal pro Stunde: Anmeldung, Guthaben, Domainliste, Verlängerungspreis pro Domain,
-Abmeldung. Jeder 2FA-Code wird nur einmal verwendet. Folgen zwei Anmeldungen im selben
-30-Sekunden-Fenster aufeinander (z. B. direkt nach der Einrichtung), wartet die Integration
-auf den nächsten Code.
+Once per hour: login, balance, domain list, renewal price per domain, logout. Each 2FA code
+is used only once. If two logins happen within the same 30-second window (e.g. right after
+setup), the integration waits for the next code.
 
-## Bekannte Einschränkungen
+## Known limitations
 
-- Die Auswertung der Preisantwort (`domain.getalldomainprices`) und das Zeitformat der API
-  sind aus der API-Dokumentation abgeleitet und noch nicht gegen ein echtes Konto geprüft.
-  Zeitangaben ohne Zeitzone werden als deutsche Ortszeit gelesen.
-- Das Icon in `custom_components/inwx/brand/icon.png` ist das INWX-Logo (Globus), erstellt
-  aus dem GitHub-Profilbild von INWX. Es gibt nur `icon.png` (256 × 256), weil die Vorlage
-  für eine scharfe 512er-Variante zu klein ist. Die Markenrechte liegen bei INWX.
+- The parsing of the price response (`domain.getalldomainprices`) and the time format of the
+  API are derived from the API documentation and have not been checked against a real
+  account yet. Timestamps without a time zone are read as German local time.
+- The icon in `custom_components/inwx/brand/icon.png` is the INWX logo (globe), created from
+  the INWX GitHub profile picture. There is only `icon.png` (256 × 256), because the source
+  is too small for a sharp 512 px version. The trademark belongs to INWX.
 
-## Entwicklung
+## Development
 
 ```bash
 uv venv .venv --python 3.14
